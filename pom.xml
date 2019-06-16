@@ -64,6 +64,12 @@
       <artifactId>nexus-rapture</artifactId>
       <scope>provided</scope>
     </dependency>
+
+    <dependency>
+      <groupId>com.vdurmont</groupId>
+      <artifactId>semver4j</artifactId>
+      <version>2.2.0</version>
+    </dependency>
   </dependencies>
 
   <build>

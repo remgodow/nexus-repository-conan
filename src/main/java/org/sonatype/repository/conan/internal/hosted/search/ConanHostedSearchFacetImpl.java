@@ -79,6 +79,7 @@ public class ConanHostedSearchFacetImpl
 
     JsonArray allRecipes = searchUtils.getRecipesJSON(searchResponse);
     allRecipes = searchUtils.filterByChannel(allRecipes, coords.getChannel());
+    allRecipes = searchUtils.filterBySemVer(allRecipes, coords.getVersion());
 
     String recipesResult = searchUtils.getRecipesResult(allRecipes);
 

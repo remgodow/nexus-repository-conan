@@ -3,6 +3,9 @@ package org.sonatype.repository.conan.internal.hosted.search;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.vdurmont.semver4j.Requirement;
+import com.vdurmont.semver4j.Semver;
+import org.bouncycastle.cert.ocsp.Req;
 import org.sonatype.repository.conan.internal.metadata.ConanCoords;
 
 import org.elasticsearch.action.search.SearchResponse;
@@ -55,9 +58,7 @@ public class SearchUtils
     QueryStringQueryBuilder nameQuery = QueryBuilders.queryStringQuery(coords.getProject())
         .field("name.raw");
 
-    // since semver searches do not work properly with conan search. Do not use this
-    QueryStringQueryBuilder versionQuery = QueryBuilders.queryStringQuery(coords.getVersion())
-        .field("version");
+    // since semver searches do not work properly with elastic, do not filter version here
 
     // for nexus elastic search user is group
     QueryStringQueryBuilder groupQuery = QueryBuilders.queryStringQuery(coords.getGroup())
@@ -68,7 +69,6 @@ public class SearchUtils
 
     QueryBuilder query = QueryBuilders.boolQuery()
         .must(nameQuery)
-        .must(versionQuery)
         .must(groupQuery)
         .must(repoQuery);
 
@@ -145,6 +145,23 @@ public class SearchUtils
       channelPos = recipe.lastIndexOf('/') + 1;
 
       if(recipe.substring(channelPos).equals(channelStr) || channelStr=="*")
+        filtered.add(elem);
+    }
+    return filtered;
+  }
+
+  public JsonArray filterBySemVer(JsonArray arr, String semverStr) {
+    JsonArray filtered = new JsonArray();
+    String recipe;
+    int verStart;
+    int verEnd;
+    Requirement searchVer = Requirement.buildNPM(semverStr);
+    for(JsonElement elem : arr) {
+      recipe = elem.getAsString();
+      verStart = recipe.indexOf('/') + 1;
+      verEnd = recipe.indexOf('@') - 1;
+      Semver recipeVer = new Semver(recipe.substring(verStart,verEnd), Semver.SemverType.NPM);
+      if(recipeVer.satisfies(searchVer))
         filtered.add(elem);
     }
     return filtered;
